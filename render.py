@@ -77,6 +77,47 @@ class Grapher(object):
             pos = (self.x_offset + i, y)
         self.screen.blit(self.text, self.text_pos)
 
+def save_recordings( recordings, file_name, header_text ):
+    for record in recordings:
+        file_name += datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S') + ".csv"
+        output_file = open(file_name, 'w')
+        output_file.write(header_text + "\n")
+        for packet in record:
+            row_file = ""
+            row_file += str(packet.timestamp) + ","
+            row_file += str(packet.sensors['F3']['value']) + ","
+            row_file += str(packet.sensors['F3']['quality']) + ","
+            row_file += str(packet.sensors['FC5']['value']) + ","
+            row_file += str(packet.sensors['FC5']['quality']) + ","
+            row_file += str(packet.sensors['F7']['value']) + ","
+            row_file += str(packet.sensors['F7']['quality']) + ","
+            row_file += str(packet.sensors['T7']['value']) + ","
+            row_file += str(packet.sensors['T7']['quality']) + ","
+            row_file += str(packet.sensors['P7']['value']) + ","
+            row_file += str(packet.sensors['P7']['quality']) + ","
+            row_file += str(packet.sensors['O1']['value']) + ","
+            row_file += str(packet.sensors['O1']['quality']) + ","
+            row_file += str(packet.sensors['O2']['value']) + ","
+            row_file += str(packet.sensors['O2']['quality']) + ","
+            row_file += str(packet.sensors['P8']['value']) + ","
+            row_file += str(packet.sensors['P8']['quality']) + ","
+            row_file += str(packet.sensors['T8']['value']) + ","
+            row_file += str(packet.sensors['T8']['quality']) + ","
+            row_file += str(packet.sensors['F8']['value']) + ","
+            row_file += str(packet.sensors['F8']['quality']) + ","
+            row_file += str(packet.sensors['AF4']['value']) + ","
+            row_file += str(packet.sensors['AF4']['quality']) + ","
+            row_file += str(packet.sensors['FC6']['value']) + ","
+            row_file += str(packet.sensors['FC6']['quality']) + ","
+            row_file += str(packet.sensors['F4']['value']) + ","
+            row_file += str(packet.sensors['F4']['quality']) + ","
+            row_file += str(packet.sensors['AF3']['value']) + ","
+            row_file += str(packet.sensors['AF3']['quality']) + ","
+            row_file += str(packet.sensors['X']['value']) + ","
+            row_file += str(packet.sensors['Y']['value']) + ","
+            row_file += str(packet.sensors['Z']['value'])
+            output_file.write(row_file + "\n")
+        output_file.close()
 
 def main():
     """
@@ -93,30 +134,19 @@ def main():
     cursor_x, cursor_y = 400, 300
     fullscreen = False
     file_name = "output_data_";
+    header_text = "Timestamp,F3 Value,F3 Quality,FC5 Value,FC5 Quality,F7 Value,F7 Quality,T7 Value,T7 Quality,P7 Value,P7 Quality,O1 Value,O1 Quality,O2 Value,O2 Quality,P8 Value,P8 Quality,T8 Value,T8 Quality,F8 Value,F8 Quality,AF4 Value,AF4 Quality,FC6 Value,FC6 Quality,F4 Value,F4 Quality,AF3 Value,AF3 Quality,X Value,Y Value,Z Value"
     with Emotiv(display_output=False, verbose=True ) as emotiv:
         for name in 'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4'.split(' '):
             graphers.append(Grapher(screen, name, len(graphers), emotiv.old_model))
         while emotiv.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-
-                    for record in recordings:
-                        file_name += datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S') + ".csv"
-                        output_file = open(file_name, 'w', newline='')
-                        for packet in record:
-                            output_file.write(packet.sensors['F3']['value'])
-                        output_file.close()
-
+                    save_recordings(recordings, file_name, header_text)
                     emotiv.stop()
                     return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        for record in recordings:
-                            file_name += datetime.datetime.fromtimestamp(time.time()).strftime( '%Y-%m-%d_%H-%M-%S') + ".csv"
-                            output_file = open(file_name, 'w' )
-                            for packet in record:
-                                output_file.write(""+str(packet.sensors['F3']['value'])+"\n")
-                            output_file.close()
+                        save_recordings(recordings, file_name, header_text)
                         emotiv.stop()
                         return
                     elif event.key == pygame.K_f:
