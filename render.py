@@ -4,9 +4,10 @@ try:
     import psyco
     psyco.full()
 except ImportError:
-    print('No psyco. Expect poor performance. Not really...')
+    print('')
 import platform
 import sys
+import os
 import time
 import datetime
 
@@ -119,13 +120,40 @@ def save_recordings( recordings, file_name, header_text ):
             output_file.write(row_file + "\n")
         output_file.close()
 
+class PacketLine:
+
+    def __init__(self, line):
+        self.sensors = {}
+        self.timestamp = time.mktime(datetime.datetime.strptime( line[0], "%Y-%m-%d %H:%M:%S.%f").timetuple())
+        index = 1
+
+        for name in 'F3 FC5 F7 T7 P7 O1 O2 P8 T8 F8 AF4 FC6 F4 AF3'.split(' '):
+            self.sensors[name] = {}
+            if line[index] == '?': self.sensors[name]['value'] = line[index]
+            else: self.sensors[name]['value'] = int(line[index])
+
+            if line[index+1] == '?': self.sensors[name]['quality'] = line[index+1]
+            else: self.sensors[name]['quality'] = int(line[index+1])
+
+            index += 2
+
+        self.sensors['X'] = {}
+        if line[index] == '?': self.sensors['X']['value'] = line[index]
+        else: self.sensors['X']['value'] = int(line[index])
+
+        self.sensors['Y'] = {}
+        if line[index+1] == '?': self.sensors['Y']['value'] = line[index+1]
+        else: self.sensors['Y']['value'] = int(line[index+1])
+
+        self.sensors['Z'] = {}
+        if line[index+2] == '?': self.sensors['Z']['value'] = line[index+2]
+        else: self.sensors['Z']['value'] = int(line[index+2])
+
 def main():
     """
     Creates pygame window and graph drawing workers for each sensor.
     """
     global gheight
-    pygame.init()
-    screen = pygame.display.set_mode((800, 600))
     graphers = []
     recordings = []
     recording = False
@@ -135,64 +163,118 @@ def main():
     fullscreen = False
     file_name = "output_data_";
     header_text = "Timestamp,F3 Value,F3 Quality,FC5 Value,FC5 Quality,F7 Value,F7 Quality,T7 Value,T7 Quality,P7 Value,P7 Quality,O1 Value,O1 Quality,O2 Value,O2 Quality,P8 Value,P8 Quality,T8 Value,T8 Quality,F8 Value,F8 Quality,AF4 Value,AF4 Quality,FC6 Value,FC6 Quality,F4 Value,F4 Quality,AF3 Value,AF3 Quality,X Value,Y Value,Z Value"
-    with Emotiv(display_output=False, verbose=True ) as emotiv:
-        for name in 'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4'.split(' '):
-            graphers.append(Grapher(screen, name, len(graphers), emotiv.old_model))
-        while emotiv.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    save_recordings(recordings, file_name, header_text)
-                    emotiv.stop()
-                    return
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
+    default_line = [ "", '0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0','0', '0', '0']
+
+    print "Ingrese opcion:"
+    opcion = int(sys.stdin.readline().strip())
+
+    if opcion == 1:
+        file_name = sys.stdin.readline().strip()
+        #read_file = open( file_name, 'r' )
+        with open(file_name, 'r') as file:
+            lines = file.readlines()
+
+            pygame.init()
+            screen = pygame.display.set_mode((800, 600))
+
+            for name in 'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4'.split(' '):
+                graphers.append( Grapher(screen, name, len(graphers) ) )
+
+            packets_in_queue = 0
+            lines.pop(0)
+            #for line in lines:
+            while True:
+                if( len(lines) != 0 ):
+                    line = lines.pop(0).strip().split(",")
+                else:
+                    line =default_line
+                    line[0] = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S.%f')
+                try:
+                    while packets_in_queue < 8:
+                       packet = PacketLine(line)
+                       if packet is not None:
+                           #print packet.sensors
+                           if abs(packet.sensors['X']['value']) > 1:
+                               cursor_x = max(0, min(cursor_x, 800))
+                               cursor_x -= packet.sensors['X']['value']
+                           if abs(packet.sensors['Y']['value']) > 1:
+                               cursor_y += packet.sensors['Y']['value']
+                               cursor_y = max(0, min(cursor_y, 600))
+                           map(lambda x: x.update(packet), graphers)
+                           if recording:
+                               record_packets.append(packet)
+                           updated = True
+                           packets_in_queue += 1
+                       time.sleep(0.001)
+                except Exception as ex:
+                    print("EmotivRender DequeuePlotError ", sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2],
+                                   " : ", ex)
+
+                if updated:
+                    screen.fill((75, 75, 75))
+                    map(lambda x: x.draw(), graphers)
+                    pygame.draw.rect(screen, (255, 255, 255), (cursor_x - 5, cursor_y - 5, 10, 10), 0)
+                    pygame.display.flip()
+                    updated = False
+    else:
+        pygame.init()
+        screen = pygame.display.set_mode((800, 600))
+        with Emotiv(display_output=False, verbose=True ) as emotiv:
+            for name in 'AF3 F7 F3 FC5 T7 P7 O1 O2 P8 T8 FC6 F4 F8 AF4'.split(' '):
+                graphers.append(Grapher(screen, name, len(graphers), emotiv.old_model))
+            while emotiv.running:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
                         save_recordings(recordings, file_name, header_text)
                         emotiv.stop()
                         return
-                    elif event.key == pygame.K_f:
-                        if fullscreen:
-                            screen = pygame.display.set_mode((800, 600))
-                            fullscreen = False
-                        else:
-                            screen = pygame.display.set_mode((800, 600), FULLSCREEN, 16)
-                            fullscreen = True
-                    elif event.key == pygame.K_r:
-                        if not recording:
-                            record_packets = []
-                            recording = True
-                        else:
-                            recording = False
-                            recordings.append(list(record_packets))
-                            record_packets = None
-            packets_in_queue = 0
-            try:
-                while packets_in_queue < 8:
-                    packet = emotiv.dequeue()
-                    if packet is not None:
-                        #print packet.sensors
-                        if abs(packet.sensors['X']['value']) > 1:
-                            cursor_x = max(0, min(cursor_x, 800))
-                            cursor_x -= packet.sensors['X']['value']
-                        if abs(packet.sensors['Y']['value']) > 1:
-                            cursor_y += packet.sensors['Y']['value']
-                            cursor_y = max(0, min(cursor_y, 600))
-                        map(lambda x: x.update(packet), graphers)
-                        if recording:
-                            record_packets.append(packet)
-                        updated = True
-                        packets_in_queue += 1
-                    time.sleep(0.001)
-            except Exception as ex:
-                print("EmotivRender DequeuePlotError ", sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2],
-                      " : ", ex)
-
-            if updated:
-                screen.fill((75, 75, 75))
-                map(lambda x: x.draw(), graphers)
-                pygame.draw.rect(screen, (255, 255, 255), (cursor_x - 5, cursor_y - 5, 10, 10), 0)
-                pygame.display.flip()
-                updated = False
-
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            save_recordings(recordings, file_name, header_text)
+                            emotiv.stop()
+                            return
+                        elif event.key == pygame.K_f:
+                            if fullscreen:
+                                screen = pygame.display.set_mode((800, 600))
+                                fullscreen = False
+                            else:
+                                screen = pygame.display.set_mode((800, 600), FULLSCREEN, 16)
+                                fullscreen = True
+                        elif event.key == pygame.K_r:
+                            if not recording:
+                                record_packets = []
+                                recording = True
+                            else:
+                                recording = False
+                                recordings.append(list(record_packets))
+                                record_packets = None
+                packets_in_queue = 0
+                try:
+                    while packets_in_queue < 8:
+                        packet = emotiv.dequeue()
+                        if packet is not None:
+                            #print packet.sensors
+                            if abs(packet.sensors['X']['value']) > 1:
+                                cursor_x = max(0, min(cursor_x, 800))
+                                cursor_x -= packet.sensors['X']['value']
+                            if abs(packet.sensors['Y']['value']) > 1:
+                                cursor_y += packet.sensors['Y']['value']
+                                cursor_y = max(0, min(cursor_y, 600))
+                            map(lambda x: x.update(packet), graphers)
+                            if recording:
+                                record_packets.append(packet)
+                            updated = True
+                            packets_in_queue += 1
+                        time.sleep(0.001)
+                except Exception as ex:
+                    print("EmotivRender DequeuePlotError ", sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2],
+                          " : ", ex)
+                if updated:
+                    screen.fill((75, 75, 75))
+                    map(lambda x: x.draw(), graphers)
+                    pygame.draw.rect(screen, (255, 255, 255), (cursor_x - 5, cursor_y - 5, 10, 10), 0)
+                    pygame.display.flip()
+                    updated = False
 
 if __name__ == "__main__":
     try:
