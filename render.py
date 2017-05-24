@@ -120,6 +120,17 @@ def save_recordings( recordings, file_name, header_text ):
             output_file.write(row_file + "\n")
         output_file.close()
 
+        file_name += datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S') + ".in"
+        output_file = open(file_name, 'w')
+        for packet in record:
+            for sensor in packet.sensors:
+                if sensor != "X" and sensor != "Y" and sensor != "Z" and sensor != "Unknown":
+                    row_file = ""
+                    row_file += sensor+" "+str(packet.sensors[sensor]['value'])
+                    output_file.write(row_file + "\n")
+        output_file.close()
+
+
 class PacketLine:
 
     def __init__(self, line):
