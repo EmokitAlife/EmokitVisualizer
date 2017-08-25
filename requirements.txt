@@ -1,6 +1,6 @@
 pycrypto>=2.6.1
 pywinusb>=0.4.2
-hidapi
-future>=2.x
+future
 pytest
 emokit
+pygame
