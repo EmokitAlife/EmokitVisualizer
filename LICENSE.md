@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2017 - [Universidad Nacional de Colombia](https://www.unal.edu.co)
+Copyright (c) 2017 - [Universidad Nacional de Colombia](http://www.unal.edu.co)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
