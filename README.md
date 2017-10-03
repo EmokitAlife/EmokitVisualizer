@@ -18,7 +18,7 @@ It depends on the version of Python of your preference, for example, here is the
 After you have installed the Visual C++ Compiler, you have to start a cmd console in the folder that holds your project and type:
 
 ```
-pip install -e . 
+pip install -r requirements.txt
 ```
 
 This command will install all the Python modules needed for running the Emokit driver package
