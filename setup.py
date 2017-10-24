@@ -12,7 +12,7 @@ setup(
     description = "An Open Source signal visualizer for the Emotiv EPOC+ Dongle",
     author = "Universidad Nacional de Colombia",
     author_email = "datovard@unal.edu.co",
-    py_modules=['sample', 'user-interface'],
+    py_modules=['sample', 'UI'],
     license = "MIT License",
     url = "https://github.com/EmokitAlife/EmokitVisualizer"
 )

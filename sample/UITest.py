@@ -1,4 +1,4 @@
-import Frame as demo
+import UI.Frame as demo
 import wx, sys, os, pygame
 import threading
 import time

@@ -3,4 +3,4 @@ future
 pytest
 emokit
 pygame
-pywinusb>=0.4.2
+wxPython
