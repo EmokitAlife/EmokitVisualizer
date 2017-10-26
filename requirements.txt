@@ -2,4 +2,5 @@ pycrypto>=2.6.1
 future
 pytest
 pygame
+pywinusb>=0.4.2
 wxPython
