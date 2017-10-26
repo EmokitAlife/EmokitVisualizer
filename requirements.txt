@@ -1,6 +1,5 @@
 pycrypto>=2.6.1
 future
 pytest
-emokit
 pygame
 wxPython
