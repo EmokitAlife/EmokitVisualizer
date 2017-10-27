@@ -30,23 +30,19 @@ class CalcFrame(demo.MyFrame1):
     file_name = "output_data_";
     header_text = "Timestamp,F3 Value,F3 Quality,FC5 Value,FC5 Quality,F7 Value,F7 Quality,T7 Value,T7 Quality,P7 Value,P7 Quality,O1 Value,O1 Quality,O2 Value,O2 Quality,P8 Value,P8 Quality,T8 Value,T8 Quality,F8 Value,F8 Quality,AF4 Value,AF4 Quality,FC6 Value,FC6 Quality,F4 Value,F4 Quality,AF3 Value,AF3 Quality,X Value,Y Value,Z Value"
 
+
     def __init__(self, parent):
         demo.MyFrame1.__init__(self, parent)
-
         try:
-            self.emotiv = Emotiv( display_output=False, verbose=True )
-            print self.emotiv
-            print self.emotiv.sensors
-            print self.emotiv.running
-        except Exception as ex:
-            print ex
-            # assert ( ex.message == "Device not found" )
-        else:
+            self.emotiv = Emotiv(display_output=False, verbose=True)
             self.t = threading.Thread(target=self.hiloEmotiv)
             self.t.start()
+        except Exception as ex:
+            self.rec.Label = "No esta conectada"
+
 
     def grabarEvent(self, event):
-        print "Captura!!!"
+        print ("Captura!!!")
 
         self.recording = not self.recording
 
@@ -109,7 +105,16 @@ class CalcFrame(demo.MyFrame1):
         output_file.close()
 
     def hiloEmotiv(self):
+        enabler = True
         while self.emotiv.running:
+            if self.emotiv.not_connecting_headset:
+                if enabler:
+                    print("\n headset out!")
+                    enabler = False
+                self.rec.Label = "No esta conectada"
+            if not self.emotiv.not_connecting_headset and not enabler:
+                self.rec.Label = "Grabar"
+                enabler = True
             try:
                 packet = self.emotiv.dequeue()
                 if packet is not None:
@@ -121,7 +126,6 @@ class CalcFrame(demo.MyFrame1):
             except Exception as ex:
                 print("EmotivRender DequeuePlotError ", sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2],
                       " : ", ex)
-
 
 app = wx.App(False)
 frame = CalcFrame(None)
