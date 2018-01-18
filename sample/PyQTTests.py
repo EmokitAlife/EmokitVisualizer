@@ -1,10 +1,11 @@
 import sys
 import pyqtgraph as pg
-from PySide import QtGui, QtCore
+from PySide.QtCore import Qt
+from PySide.QtGui import *
 
 import numpy as np
 
-class tabdemo ( QtGui.QTabWidget ):
+class tabdemo ( QTabWidget ):
     def __init__(self, parent=None):
         super(tabdemo, self).__init__(parent)
 
@@ -15,14 +16,32 @@ class tabdemo ( QtGui.QTabWidget ):
                             ('O1', (15, 150, 255)), ('O2', (150, 255, 15))
                             )
 
+        self.electrodesPosition = \
+        [
+            {"x":  82, "y":  57},   #AF3
+            {"x": 221, "y":  57},   #AF4
+            {"x":  35, "y": 104},   #F7
+            {"x": 114, "y": 107},   #F3
+            {"x": 190, "y": 107},   #F4
+            {"x": 269, "y": 104},   #F8
+            {"x":  67, "y": 149},   #FC5
+            {"x": 236, "y": 149},   #FC6
+            {"x":  18, "y": 197},   #T7
+            {"x": 286, "y": 197},   #T8
+            {"x":  67, "y": 317},   #P7
+            {"x": 236, "y": 317},   #P8
+            {"x": 113, "y": 375},   #O1
+            {"x": 192, "y": 375}    #O2
+        ]
+
         # Plot in chunks, adding one new plot curve for every 100 samples
         self.chunkSize = 100
         # Remove chunks after we have 10
         self.maxChunks = 10
         self.startTime = pg.ptime.time()
 
-        self.tab1 = QtGui.QWidget()
-        self.tab2 = QtGui.QWidget()
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
 
         self.addTab(self.tab1, "Tab 1")
         self.addTab(self.tab2, "Tab 2")
@@ -75,36 +94,35 @@ class tabdemo ( QtGui.QTabWidget ):
 
     def tab1UI(self):
         # Left sided box for controls
-        leftBox = QtGui.QFormLayout()
+        leftBox = QFormLayout()
 
-        record = QtGui.QPushButton("Grabar")
-        stop = QtGui.QPushButton("Detener")
-        recordButtons = QtGui.QGridLayout()
+        record = QPushButton("Grabar")
+        stop = QPushButton("Detener")
+        recordButtons = QGridLayout()
         recordButtons.addWidget( record, 0, 0 )
         recordButtons.addWidget( stop, 0, 1 )
-        leftBox.addRow(QtGui.QLabel("Controles de grabacion"))
+        leftBox.addRow(QLabel("Controles de grabacion"))
         leftBox.addRow(recordButtons)
 
-        route = QtGui.QLineEdit()
+        route = QLineEdit()
         route.setReadOnly(True)
-        examine = QtGui.QPushButton("Examinar")
-        folderButtons = QtGui.QGridLayout()
+        examine = QPushButton("Examinar")
+        folderButtons = QGridLayout()
         folderButtons.addWidget(route, 0, 0)
         folderButtons.addWidget(examine, 0, 1)
-        leftBox.addRow(QtGui.QLabel("Carpeta de guardado"))
+        leftBox.addRow(QLabel("Carpeta de guardado"))
         leftBox.addRow(folderButtons)
 
         # Sensors status
-        '''headsetState = QtGui.QLabel()
-        headsetState.setPixmap(QtGui.QPixmap("../assets/headset.png"))'''
-        painter = QtGui.QPainter()
-        painter.begin(self)
-        # leftBox.addRow( headsetState )
+        self.headsetState = QLabel()
+        leftBox.addRow(self.headsetState)
+        self.updateHeadsetStatus()
+
 
         # Center sided box for signals
-        centerBox = QtGui.QFormLayout()
+        centerBox = QFormLayout()
         plots = pg.GraphicsWindow()
-        centerBox.addRow( QtGui.QLabel("Estado de las senales") )
+        centerBox.addRow( QLabel("Estado de las senales") )
         centerBox.addRow(plots)
 
         allWaves = []
@@ -128,10 +146,10 @@ class tabdemo ( QtGui.QTabWidget ):
         timer.start(10)
 
         # Bottom sided box
-        textEdit2 = QtGui.QTextEdit("Bottom rectangle")
+        textEdit2 = QTextEdit("Bottom rectangle")
 
         # Main grid layout
-        gridLayout = QtGui.QGridLayout()
+        gridLayout = QGridLayout()
         gridLayout.addLayout(leftBox, 0, 0)
         gridLayout.addLayout(centerBox, 0, 1)
         gridLayout.addWidget(textEdit2, 1, 1)
@@ -146,12 +164,12 @@ class tabdemo ( QtGui.QTabWidget ):
         self.tab1.setLayout(gridLayout)
 
     def tab2UI(self):
-        layout = QtGui.QFormLayout()
-        sex = QtGui.QHBoxLayout()
-        sex.addWidget(QtGui.QRadioButton("Male"))
-        sex.addWidget(QtGui.QRadioButton("Female"))
-        layout.addRow(QtGui.QLabel("Sex"), sex)
-        layout.addRow("Date of Birth", QtGui.QLineEdit())
+        layout = QFormLayout()
+        sex = QHBoxLayout()
+        sex.addWidget(QRadioButton("Male"))
+        sex.addWidget(QRadioButton("Female"))
+        layout.addRow(QLabel("Sex"), sex)
+        layout.addRow("Date of Birth", QLineEdit())
         self.setTabText(1, "Personal Details")
         self.tab2.setLayout(layout)
 
@@ -161,9 +179,23 @@ class tabdemo ( QtGui.QTabWidget ):
     def b2_clicked(self):
         print "Button 2 clicked"
 
+    def updateHeadsetStatus(self):
+        pixmap = QPixmap("../assets/headset.png")
+
+        painter = QPainter()
+        painter.begin(pixmap)
+        painter.setBrush(QColor(102, 175, 54))
+
+        for item in self.electrodesPosition:
+            painter.drawEllipse( item["x"], item["y"], 28, 28)
+
+        painter.end()
+
+        self.headsetState.setPixmap(pixmap)
+
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     ex = tabdemo()
     ex.show()
     sys.exit(app.exec_())
