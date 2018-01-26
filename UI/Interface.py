@@ -3,15 +3,10 @@
 
 import sys
 import pyqtgraph as pg
-from PySide.QtCore import Qt
 from PySide.QtGui import *
 
 from Record import Record
-
-from emokit.emotiv import Emotiv
-from emokit.util import get_quality_scale_level_color
-
-import numpy as np
+from FromFile import FromFile
 
 class Interface ( QTabWidget ):
     def __init__(self, parent=None):
@@ -49,6 +44,7 @@ class Interface ( QTabWidget ):
         self.startTime = pg.ptime.time()
 
         self.recordTab = Record()
+        self.fromFileTab = FromFile()
 
         self.tab1 = QWidget()
         self.tab2 = QWidget()
@@ -70,20 +66,8 @@ class Interface ( QTabWidget ):
         self.timer.start(10)
 
     def tab2UI(self):
-        # Left sided box for controls
-        leftBox = QFormLayout()
-
-        route = QLineEdit()
-        route.setReadOnly(True)
-        examine = QPushButton("Examinar")
-        folderButtons = QGridLayout()
-        folderButtons.addWidget(route, 0, 0)
-        folderButtons.addWidget(examine, 0, 1)
-        leftBox.addRow(QLabel("Ruta del archivo"))
-        leftBox.addRow(folderButtons)
-
         self.setTabText(1, "Desde archivo")
-        self.tab2.setLayout(leftBox)
+        self.tab2.setLayout( self.fromFileTab.setFromFileTab() )
 
 def main():
     app = QApplication(sys.argv)
