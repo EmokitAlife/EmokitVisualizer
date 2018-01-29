@@ -1,9 +1,14 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
 import pyqtgraph as pg
 from PySide.QtGui import *
 import numpy as np
+import csv
+
+sys.path.append('../util')
+from PacketParser import PacketParser
 
 class FromFile:
     def __init__(self, parent=None):
@@ -32,6 +37,16 @@ class FromFile:
                 {"x": 113, "y": 375},  # O1
                 {"x": 192, "y": 375}  # O2
             ]
+
+        self.headsetColors = \
+            [
+                (0, 0, 0),      # Black
+                (255, 0, 0),    # Red
+                (230, 255, 0),  # Yellow
+                (102, 175, 54), # Green
+            ]
+        self.parser = PacketParser()
+
         # Plot in chunks, adding one new plot curve for every 100 samples
         self.chunkSize = 100
         # Remove chunks after we have 10
@@ -66,10 +81,7 @@ class FromFile:
         return [p, data, ptr, i_curves]
 
     # update all plots
-    def update( self ):
-        packet = self.headset.dequeue()
-        # print packet
-        # packet = 1
+    def update( self, packet ):
         if packet is not None:
             for i, wave in enumerate(self.allWaves):
                 wave = self.update3(*wave, startTime=self.startTime, emo_data=packet.sensors[ self.electrodes[i][0]]['value'],
@@ -100,9 +112,9 @@ class FromFile:
         # Left sided box for controls
         self.leftBox = QFormLayout()
 
+        # Folder selection buttons
         self.route = QLineEdit()
         self.route.setReadOnly(True)
-
         self.examine = QPushButton("Examinar")
         self.examine.clicked.connect(self.getFilename)
 
@@ -111,6 +123,21 @@ class FromFile:
         folderButtons.addWidget(self.examine, 0, 1)
         self.leftBox.addRow(QLabel("Archivo escogido"))
         self.leftBox.addRow(folderButtons)
+
+        # Action selection buttons
+
+        self.startBtn = QPushButton("Iniciar")
+        self.startBtn.setEnabled(False)
+        self.startBtn.clicked.connect(self.startReading)
+        self.stopBtn = QPushButton("Detener")
+        self.stopBtn.setEnabled(False)
+        self.stopBtn.clicked.connect(self.stopReading)
+
+        actionsButtons = QGridLayout()
+        actionsButtons.addWidget(self.startBtn, 0, 0)
+        actionsButtons.addWidget(self.stopBtn, 0, 1)
+        self.leftBox.addRow(QLabel("Control"))
+        self.leftBox.addRow(actionsButtons)
 
         # Sensors status
         self.leftBox.addRow(QLabel("Estado de los sensores"))
@@ -146,7 +173,8 @@ class FromFile:
 
         painter = QPainter()
         painter.begin(pixmap)
-        painter.setBrush(QColor(102, 175, 54))
+        color = self.headsetColors[0]
+        painter.setBrush( QColor( color[0], color[1], color[2] ) )
 
         for item in self.electrodesPosition:
             painter.drawEllipse( item["x"], item["y"], 28, 28)
@@ -155,7 +183,21 @@ class FromFile:
 
         self.headsetState.setPixmap(pixmap)
 
+    def startReading(self):
+        with open( self.fileRoute, 'rb') as csvfile:
+            self.file = csv.reader(csvfile, delimiter=',', quotechar='|')
+            headers = next(self.file)
+
+            self.timer = pg.QtCore.QTimer()
+            self.timer.timeout.connect(self.update( self.parser.fromCSVToPacket( headers, next(self.file) ) ) )
+            self.timer.start(10)
+
+    def stopReading(self):
+        return None
+
     def getFilename(self):
         filename = QFileDialog.getOpenFileName(self.examine, 'Open file',
                                             'c:\\', "CSV (*.csv)")
-        print filename
+        self.fileRoute = filename[0]
+        self.route.setText( self.fileRoute )
+        self.startBtn.setEnabled(True)
