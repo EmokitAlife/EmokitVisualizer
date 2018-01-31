@@ -184,16 +184,21 @@ class FromFile:
         self.headsetState.setPixmap(pixmap)
 
     def startReading(self):
-        with open( self.fileRoute, 'rb') as csvfile:
-            self.file = csv.reader(csvfile, delimiter=',', quotechar='|')
-            headers = next(self.file)
+        self.csvfile = open( self.fileRoute, 'rb')
+        self.file = csv.reader(self.csvfile, delimiter=',', quotechar='|')
+        self.headers = next(self.file)
 
-            self.timer = pg.QtCore.QTimer()
-            self.timer.timeout.connect(self.update( self.parser.fromCSVToPacket( headers, next(self.file) ) ) )
-            self.timer.start(10)
+        self.timer = pg.QtCore.QTimer()
+        self.timer.timeout.connect( self.setupNewPacket )
+        self.timer.start(10)
 
     def stopReading(self):
         return None
+
+    def setupNewPacket(self):
+        nextPacket = next(self.file)
+        parsed = self.parser.fromCSVToPacket( list(self.headers), nextPacket )
+        self.update( parsed )
 
     def getFilename(self):
         filename = QFileDialog.getOpenFileName(self.examine, 'Open file',

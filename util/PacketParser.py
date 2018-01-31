@@ -1,11 +1,16 @@
 class PacketParser:
     def fromCSVToPacket(self, headers, row):
-        packet = {}
-        packet[ headers.pop(0).lower() ] = row.pop(0)
-        packet.sensors = {}
+        return ParsedPacket( headers, row )
+
+
+class ParsedPacket:
+    def __init__(self, headers, row):
+        self.sensors = {}
+        self.timestamp = row.pop(0)
+        headers.pop(0)
         for header in headers:
             header = header.split()
-            if header[0] not in packet:
-                packet.sensors[header[0]] = {}
-            packet.sensort[header[0]][header[1].lower()] = row.pop(0)
-        return packet
+            if header[0] not in self.sensors:
+                self.sensors[header[0]] = {}
+            value = row.pop(0)
+            self.sensors[header[0]][header[1].lower()] = int(value) if value != "?" else None
