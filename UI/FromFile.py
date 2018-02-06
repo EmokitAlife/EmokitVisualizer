@@ -77,7 +77,7 @@ class FromFile:
         else:
             curve = i_curves[-1]
         data[i + 1, 0] = now - startTime
-        data[i + 1, 1] = emo_data / 4000  # np.random.normal()  # dummy data  #
+        data[i + 1, 1] = emo_data  # np.random.normal()  # dummy data  #
         # print emo_data
         # data[i + 1, 1] = ef.process_decrypted_packet_queue(raw_decrypted_packet, processed_packets)
         curve.setData(x=data[:i + 2, 0], y=data[:i + 2, 1])
@@ -103,13 +103,10 @@ class FromFile:
         self.gridLayout = QGridLayout()
         self.gridLayout.addLayout( self.leftBox, 0, 0)
         self.gridLayout.addLayout( self.centerBox, 0, 1)
-        self.gridLayout.addWidget(textEdit2, 1, 1)
 
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 3)
 
-        self.gridLayout.setRowStretch(0, 3)
-        self.gridLayout.setRowStretch(1, 1)
         return self.gridLayout
 
     def setLeftSidedBox(self):
