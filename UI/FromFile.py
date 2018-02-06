@@ -56,6 +56,8 @@ class FromFile:
         self.startTime = pg.ptime.time()
         #self.headset = Emotiv()
 
+        self.timer = pg.QtCore.QTimer()
+
     def update3( self, p, data, ptr, i_curves, startTime, emo_data, color ):
         now = pg.ptime.time()
         for c in i_curves:
@@ -131,13 +133,17 @@ class FromFile:
         self.startBtn = QPushButton("Iniciar")
         self.startBtn.setEnabled(False)
         self.startBtn.clicked.connect(self.startReading)
-        self.stopBtn = QPushButton("Detener")
+        self.stopBtn = QPushButton("Pausar")
         self.stopBtn.setEnabled(False)
         self.stopBtn.clicked.connect(self.stopReading)
+        self.restartBtn = QPushButton("Reiniciar")
+        self.restartBtn.setEnabled(False)
+        self.restartBtn.clicked.connect(self.restartReading)
 
         actionsButtons = QGridLayout()
         actionsButtons.addWidget(self.startBtn, 0, 0)
         actionsButtons.addWidget(self.stopBtn, 0, 1)
+        actionsButtons.addWidget(self.restartBtn, 0, 2)
         self.leftBox.addRow(QLabel("Control"))
         self.leftBox.addRow(actionsButtons)
 
@@ -150,8 +156,15 @@ class FromFile:
     def setCenterBox(self):
         # Center sided box for signals
         self.centerBox = QFormLayout()
-        self.plots = pg.GraphicsWindow()
         self.centerBox.addRow(QLabel("Estado de las senales"))
+
+        self.startPlots()
+
+    def startPlots(self):
+        if (self.centerBox.count() == 2):
+            self.centerBox.removeWidget(self.plots)
+
+        self.plots = pg.GraphicsWindow()
         self.centerBox.addRow(self.plots)
 
         self.allWaves = []
@@ -193,16 +206,36 @@ class FromFile:
         self.headsetState.setPixmap(pixmap)
 
     def startReading(self):
-        self.csvfile = open( self.fileRoute, 'rb')
-        self.file = csv.reader(self.csvfile, delimiter=',', quotechar='|')
-        self.headers = next(self.file)
+        self.startBtn.setEnabled(False)
+        self.stopBtn.setEnabled(True)
 
-        self.timer = pg.QtCore.QTimer()
         self.timer.timeout.connect( self.setupNewPacket )
         self.timer.start(10)
 
     def stopReading(self):
-        return None
+        self.timer.stop()
+
+        self.stopBtn.setEnabled(False)
+        self.startBtn.setEnabled(True)
+
+    def restartReading(self):
+        self.startBtn.setEnabled(False)
+        self.stopBtn.setEnabled(False)
+        self.restartBtn.setEnabled(False)
+
+        self.timer.stop()
+
+        self.fileRoute = ""
+        self.route.setText(self.fileRoute)
+
+        self.csvfile = None
+        self.file = None
+        self.headers = None
+
+        self.startPlots()
+        self.updateHeadsetStatus(None)
+
+
 
     def setupNewPacket(self):
         nextPacket = next(self.file)
@@ -216,4 +249,10 @@ class FromFile:
                                             'c:\\', "CSV (*.csv)")
         self.fileRoute = filename[0]
         self.route.setText( self.fileRoute )
+
+        self.csvfile = open(self.fileRoute, 'rb')
+        self.file = csv.reader(self.csvfile, delimiter=',', quotechar='|')
+        self.headers = next(self.file)
+
         self.startBtn.setEnabled(True)
+        self.restartBtn.setEnabled(True)
