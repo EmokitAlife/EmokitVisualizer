@@ -1,58 +1,67 @@
-# !/usr/bin/python
-# -*- coding: utf-8 -*-
+from PySide import QtCore, QtGui
+import pyqtgraph as pg
+import random
+import csv
 
-import sys
-
-from PySide.QtCore import *
-from PySide.QtGui import *
-
-class filedialogdemo(QWidget):
+class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
-        super(filedialogdemo, self).__init__(parent)
+        super(MainWindow, self).__init__(parent)
+        self.central_widget = QtGui.QStackedWidget()
+        self.setCentralWidget(self.central_widget)
+        self.login_widget = LoginWidget(self)
+        self.login_widget.button.clicked.connect(self.plotter)
+        self.central_widget.addWidget(self.login_widget)
 
-        layout = QVBoxLayout()
-        self.btn = QPushButton("QFileDialog static method demo")
-        self.btn.clicked.connect(self.getfile)
+        self.csvfile = open( "C:/Users/abad_/Downloads/data.csv", 'rb')
+        self.file = csv.reader(self.csvfile, delimiter=',', quotechar='|')
+        self.headers = next(self.file)
 
-        layout.addWidget(self.btn)
-        self.le = QLabel("Hello")
+    def plotter(self):
+        self.data1 =[0]
+        self.data2 = [0]
+        self.curve1 = self.login_widget.p1.plot()
+        self.curve2 = self.login_widget.p2.plot()
 
-        layout.addWidget(self.le)
-        self.btn1 = QPushButton("QFileDialog object")
-        self.btn1.clicked.connect(self.getfiles)
-        layout.addWidget(self.btn1)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.updater)
+        self.timer.start(0)
 
-        self.contents = QTextEdit()
-        layout.addWidget(self.contents)
+    def updater(self):
+        nextPacket = next(self.file)
+        if( len(self.data1) >= 300 ):
+            self.data1.pop(0)
+            self.data1[0] = 0
+        self.data1.append( int(nextPacket[1]) )
+
+        self.curve1.setData(self.data1)
+
+        if (len(self.data2) >= 300):
+            self.data2.pop(0)
+            self.data2[0] = 0
+        self.data2.append(int(nextPacket[3]))
+
+        self.curve2.setData(self.data2)
+
+
+class LoginWidget(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(LoginWidget, self).__init__(parent)
+        layout = QtGui.QHBoxLayout()
+        self.button = QtGui.QPushButton('Start Plotting')
+        layout.addWidget(self.button)
+        #self.plot = pg.PlotWidget()
+        self.plots = pg.GraphicsWindow()
+
+        self.p1 = self.plots.addPlot()
+        self.plots.nextRow()
+        self.p2 = self.plots.addPlot()
+
+        layout.addWidget(self.plots)
         self.setLayout(layout)
-        self.setWindowTitle("File Dialog demo")
-
-    def getfile(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file',
-                                            'c:\\', "Image files (*.jpg *.gif)")
-        self.le.setPixmap(QPixmap(fname))
-
-    def getfiles(self):
-        dlg = QFileDialog()
-        dlg.setFileMode(QFileDialog.AnyFile)
-        dlg.setFilter("Text files (*.txt)")
-        filenames = {}
-
-        if dlg.exec_():
-            filenames = dlg.selectedFiles()
-            f = open(filenames[0], 'r')
-
-            with f:
-                data = f.read()
-                self.contents.setText(data)
-
-
-def main():
-    app = QApplication(sys.argv)
-    ex = filedialogdemo()
-    ex.show()
-    sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
-    main()
+    app = QtGui.QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec_()
+
