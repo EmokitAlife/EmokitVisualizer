@@ -76,7 +76,7 @@ class FromFile:
                 p.removeItem(c)
         else:
             curve = i_curves[-1]
-        data[i + 1, 0] = now - startTime
+        data[i + 1, 0] = now - self.startTime
         data[i + 1, 1] = emo_data  # np.random.normal()  # dummy data  #
         # print emo_data
         # data[i + 1, 1] = ef.process_decrypted_packet_queue(raw_decrypted_packet, processed_packets)
@@ -91,6 +91,29 @@ class FromFile:
                 wave = self.update3(*wave, startTime=self.startTime, emo_data=packet.sensors[ self.electrodes[i][0]]['value'],
                                color = self.electrodes[i][1])
                 self.allWaves[i] = wave
+
+    def startPlots(self):
+        if (self.centerBox.count() == 2):
+            self.centerBox.removeWidget(self.plots)
+
+        self.plots = pg.GraphicsWindow()
+        self.centerBox.addRow(self.plots)
+
+        self.allWaves = []
+        for i in xrange(14):
+            if i:
+                self.plots.nextRow()
+            p = self.plots.addPlot()
+            # p.setPen((255, 125, 123))
+            if i == 13:
+                p.setLabel('bottom', 'Time', 's')
+            else:
+                p.showAxis('bottom', False)
+            # p.setXRange(-10, 0)
+            curves = []
+            data = np.empty((self.chunkSize + 1, 2))
+            ptr = 0
+            self.allWaves.append([p, data, ptr, curves])
 
     def setFromFileTab(self):
         self.setLeftSidedBox()
@@ -156,29 +179,6 @@ class FromFile:
         self.centerBox.addRow(QLabel("Estado de las senales"))
 
         self.startPlots()
-
-    def startPlots(self):
-        if (self.centerBox.count() == 2):
-            self.centerBox.removeWidget(self.plots)
-
-        self.plots = pg.GraphicsWindow()
-        self.centerBox.addRow(self.plots)
-
-        self.allWaves = []
-        for i in xrange(14):
-            if i:
-                self.plots.nextRow()
-            p = self.plots.addPlot()
-            # p.setPen((255, 125, 123))
-            if i == 13:
-                p.setLabel('bottom', 'Time', 's')
-            else:
-                p.showAxis('bottom', False)
-            # p.setXRange(-10, 0)
-            curves = []
-            data = np.empty((self.chunkSize + 1, 2))
-            ptr = 0
-            self.allWaves.append([p, data, ptr, curves])
 
     def updateHeadsetStatus(self, packet):
         pixmap = QPixmap("../assets/headset.png")
