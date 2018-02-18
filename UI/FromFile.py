@@ -4,45 +4,17 @@
 import sys
 import pyqtgraph as pg
 from PySide.QtGui import *
-import numpy as np
 import csv
 
 from PlottingWidget import PlottingWidget
+from HeadStatusWidget import HeadStatusWidget
 
 sys.path.append('../util')
 from PacketParser import PacketParser
 
-from emokit.util import get_quality_scale_level_color
-
 class FromFile:
     def __init__(self, parent=None):
-        self.electrodesPosition = \
-            {
-                "AF3": {"x": 82, "y": 57},  # AF3
-                "AF4": {"x": 221, "y": 57},  # AF4
-                "F7": {"x": 35, "y": 104},  # F7
-                "F3": {"x": 114, "y": 107},  # F3
-                "F4": {"x": 190, "y": 107},  # F4
-                "F8": {"x": 269, "y": 104},  # F8
-                "FC5": {"x": 67, "y": 149},  # FC5
-                "FC6": {"x": 236, "y": 149},  # FC6
-                "T7": {"x": 18, "y": 197},  # T7
-                "T8": {"x": 286, "y": 197},  # T8
-                "P7": {"x": 67, "y": 317},  # P7
-                "P8": {"x": 236, "y": 317},  # P8
-                "O1": {"x": 113, "y": 375},  # O1
-                "O2": {"x": 192, "y": 375}  # O2
-            }
-
-        self.headsetColors = \
-            [
-                (0, 0, 0),      # Black
-                (255, 0, 0),    # Red
-                (230, 255, 0),  # Yellow
-                (102, 175, 54), # Green
-            ]
         self.parser = PacketParser()
-
         self.timer = pg.QtCore.QTimer()
 
     def setFromFileTab(self):
@@ -99,9 +71,10 @@ class FromFile:
 
         # Sensors status
         self.leftBox.addRow(QLabel("Estado de los sensores"))
-        self.headsetState = QLabel()
+
+        self.headsetState = HeadStatusWidget()
         self.leftBox.addRow(self.headsetState)
-        self.updateHeadsetStatus( None )
+        self.headsetState.updateHeadsetStatus(None)
 
     def setCenterBox(self):
         # Center sided box for signals
@@ -110,28 +83,6 @@ class FromFile:
 
         self.plots = PlottingWidget()
         self.centerBox.addRow( self.plots )
-
-    def updateHeadsetStatus(self, packet):
-        pixmap = QPixmap("../assets/headset.png")
-
-        painter = QPainter()
-        painter.begin(pixmap)
-        if packet == None:
-            color = self.headsetColors[0]
-            painter.setBrush(QColor(color[0], color[1], color[2]))
-            for item in self.electrodesPosition:
-                painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
-        else:
-            for sensor in packet.sensors:
-                if sensor in self.electrodesPosition:
-                    quality = packet.sensors[sensor]['quality'] // 540
-                    color = self.headsetColors[ quality if quality <= 3 else 3 ]
-                    painter.setBrush(QColor(color[0], color[1], color[2]))
-                    painter.drawEllipse(self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"], 28, 28)
-
-        painter.end()
-
-        self.headsetState.setPixmap(pixmap)
 
     def startReading(self):
         self.startBtn.setEnabled(False)
@@ -161,14 +112,13 @@ class FromFile:
         self.headers = None
 
         self.plots.restartPlotting()
-        self.updateHeadsetStatus(None)
+        self.headsetState.updateHeadsetStatus(None)
 
     def setupNewPacket(self):
         nextPacket = next(self.file)
         parsed = self.parser.fromCSVToPacket( list(self.headers), nextPacket )
         self.plots.updater( parsed )
-        self.updateHeadsetStatus(parsed)
-
+        self.headsetState.updateHeadsetStatus(parsed)
 
     def getFilename(self):
         filename = QFileDialog.getOpenFileName(self.examine, 'Open file',

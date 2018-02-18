@@ -1,14 +1,12 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import pyqtgraph as pg
 from PySide.QtGui import *
-import numpy as np
 
 from emokit.emotiv import Emotiv
-from emokit.util import get_quality_scale_level_color
 
 from PlottingWidget import PlottingWidget
+from HeadStatusWidget import HeadStatusWidget
 
 class Record:
     def __init__(self, parent=None):
@@ -35,6 +33,8 @@ class Record:
         packet = self.headset.dequeue()
         if packet != None:
             self.plots.updater(packet)
+        self.headsetState.updateHeadsetStatus(packet)
+
 
     def setRecordTab(self):
         self.setLeftSidedBox()
@@ -79,9 +79,9 @@ class Record:
 
         # Sensors status
         self.leftBox.addRow(QLabel("Estado de los sensores"))
-        self.headsetState = QLabel()
+        self.headsetState = HeadStatusWidget()
         self.leftBox.addRow(self.headsetState)
-        self.updateHeadsetStatus()
+        self.headsetState.updateHeadsetStatus(None)
 
     def setCenterBox(self):
         # Center sided box for signals
@@ -89,17 +89,3 @@ class Record:
         self.plots = PlottingWidget()
         self.centerBox.addRow(QLabel("Estado de las senales"))
         self.centerBox.addRow(self.plots)
-
-    def updateHeadsetStatus(self):
-        pixmap = QPixmap("../assets/headset.png")
-
-        painter = QPainter()
-        painter.begin(pixmap)
-        painter.setBrush(QColor(102, 175, 54))
-
-        for item in self.electrodesPosition:
-            painter.drawEllipse( item["x"], item["y"], 28, 28)
-
-        painter.end()
-
-        self.headsetState.setPixmap(pixmap)

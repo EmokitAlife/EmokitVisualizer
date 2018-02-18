@@ -1,4 +1,3 @@
-import sys
 from PySide import QtCore, QtGui
 import pyqtgraph as pg
 
