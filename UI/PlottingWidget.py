@@ -15,6 +15,10 @@ class PlottingWidget(QtGui.QWidget):
         )
 
         layout = QtGui.QHBoxLayout()
+
+        self.button = QtGui.QPushButton('Start Plotting')
+        layout.addWidget(self.button)
+
         self.plots = pg.GraphicsWindow()
         self.plotter()
         layout.addWidget(self.plots)
@@ -53,3 +57,8 @@ class PlottingWidget(QtGui.QWidget):
             curve.setPen(self.electrodes[i][1])
             plot.setLabel('right', packet.sensors[self.electrodes[i][0]]["value"])
             curve.setData( x = dataX, y = dataY )
+
+    def restartPlotting(self):
+        self.plots.clear()
+        self.plots.nextRow()
+        self.plotter()

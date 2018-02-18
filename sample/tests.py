@@ -21,6 +21,7 @@ class MainWindow(QtGui.QMainWindow):
         self.central_widget.addWidget(self.plot_widget)
 
         self.plotter()
+        self.plot_widget.button.clicked.connect(self.stopPlotting)
 
         self.csvfile = open( "C:/Users/abad_/Downloads/data.csv", 'rb')
         self.file = csv.reader(self.csvfile, delimiter=',', quotechar='|')
@@ -35,6 +36,11 @@ class MainWindow(QtGui.QMainWindow):
         nextPacket = next(self.file)
         parsed = parser.fromCSVToPacket( list(self.headers), nextPacket )
         self.plot_widget.updater( parsed )
+
+    def stopPlotting(self):
+        self.timer.stop()
+        self.plot_widget.restartPlotting()
+        self.plotter()
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
