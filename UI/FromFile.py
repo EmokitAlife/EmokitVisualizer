@@ -7,6 +7,8 @@ from PySide.QtGui import *
 import numpy as np
 import csv
 
+from PlottingWidget import PlottingWidget
+
 sys.path.append('../util')
 from PacketParser import PacketParser
 
@@ -14,14 +16,6 @@ from emokit.util import get_quality_scale_level_color
 
 class FromFile:
     def __init__(self, parent=None):
-        self.electrodes = (
-        ('AF3', (15, 150, 255)), ('AF4', (150, 255, 15)), ('F3', (255, 15, 150)), ('F4', (15, 150, 255)),
-        ('F7', (150, 255, 15)), ('F8', (255, 15, 150)),
-        ('FC5', (15, 150, 255)), ('FC6', (150, 255, 15)), ('T7', (255, 15, 150)), ('T8', (15, 150, 255)),
-        ('P7', (150, 255, 15)), ('P8', (255, 15, 150)),
-        ('O1', (15, 150, 255)), ('O2', (150, 255, 15))
-        )
-
         self.electrodesPosition = \
             {
                 "AF3": {"x": 82, "y": 57},  # AF3
@@ -49,71 +43,7 @@ class FromFile:
             ]
         self.parser = PacketParser()
 
-        # Plot in chunks, adding one new plot curve for every 100 samples
-        self.chunkSize = 100
-        # Remove chunks after we have 10
-        self.maxChunks = 10
-        self.startTime = pg.ptime.time()
-        #self.headset = Emotiv()
-
         self.timer = pg.QtCore.QTimer()
-
-    def update3( self, p, data, ptr, i_curves, startTime, emo_data, color ):
-        now = pg.ptime.time()
-        for c in i_curves:
-            c.setPos(-(now - startTime), 0)
-
-        i = ptr % self.chunkSize
-        if i == 0:
-            curve = p.plot()
-            curve.setPen(color)  # (255, 125, 123))
-            i_curves.append(curve)
-            last = data[-1]
-            data = np.empty((self.chunkSize + 1, 2))
-            data[0] = last
-            while len(i_curves) > self.maxChunks:
-                c = i_curves.pop(0)
-                p.removeItem(c)
-        else:
-            curve = i_curves[-1]
-        data[i + 1, 0] = now - self.startTime
-        data[i + 1, 1] = emo_data  # np.random.normal()  # dummy data  #
-        # print emo_data
-        # data[i + 1, 1] = ef.process_decrypted_packet_queue(raw_decrypted_packet, processed_packets)
-        curve.setData(x=data[:i + 2, 0], y=data[:i + 2, 1])
-        ptr += 1
-        return [p, data, ptr, i_curves]
-
-    # update all plots
-    def update( self, packet ):
-        if packet is not None:
-            for i, wave in enumerate(self.allWaves):
-                wave = self.update3(*wave, startTime=self.startTime, emo_data=packet.sensors[ self.electrodes[i][0]]['value'],
-                               color = self.electrodes[i][1])
-                self.allWaves[i] = wave
-
-    def startPlots(self):
-        if (self.centerBox.count() == 2):
-            self.centerBox.removeWidget(self.plots)
-
-        self.plots = pg.GraphicsWindow()
-        self.centerBox.addRow(self.plots)
-
-        self.allWaves = []
-        for i in xrange(14):
-            if i:
-                self.plots.nextRow()
-            p = self.plots.addPlot()
-            # p.setPen((255, 125, 123))
-            if i == 13:
-                p.setLabel('bottom', 'Time', 's')
-            else:
-                p.showAxis('bottom', False)
-            # p.setXRange(-10, 0)
-            curves = []
-            data = np.empty((self.chunkSize + 1, 2))
-            ptr = 0
-            self.allWaves.append([p, data, ptr, curves])
 
     def setFromFileTab(self):
         self.setLeftSidedBox()
@@ -178,7 +108,8 @@ class FromFile:
         self.centerBox = QFormLayout()
         self.centerBox.addRow(QLabel("Estado de las senales"))
 
-        self.startPlots()
+        self.plots = PlottingWidget()
+        self.centerBox.addRow( self.plots )
 
     def updateHeadsetStatus(self, packet):
         pixmap = QPixmap("../assets/headset.png")
@@ -229,15 +160,13 @@ class FromFile:
         self.file = None
         self.headers = None
 
-        self.startPlots()
+        self.plots.restartPlotting()
         self.updateHeadsetStatus(None)
-
-
 
     def setupNewPacket(self):
         nextPacket = next(self.file)
         parsed = self.parser.fromCSVToPacket( list(self.headers), nextPacket )
-        self.update( parsed )
+        self.plots.updater( parsed )
         self.updateHeadsetStatus(parsed)
 
 

@@ -16,9 +16,6 @@ class PlottingWidget(QtGui.QWidget):
 
         layout = QtGui.QHBoxLayout()
 
-        self.button = QtGui.QPushButton('Start Plotting')
-        layout.addWidget(self.button)
-
         self.plots = pg.GraphicsWindow()
         self.plotter()
         layout.addWidget(self.plots)
