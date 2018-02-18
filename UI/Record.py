@@ -8,16 +8,10 @@ import numpy as np
 from emokit.emotiv import Emotiv
 from emokit.util import get_quality_scale_level_color
 
+from PlottingWidget import PlottingWidget
+
 class Record:
     def __init__(self, parent=None):
-        self.electrodes = (
-        ('AF3', (15, 150, 255)), ('AF4', (150, 255, 15)), ('F3', (255, 15, 150)), ('F4', (15, 150, 255)),
-        ('F7', (150, 255, 15)), ('F8', (255, 15, 150)),
-        ('FC5', (15, 150, 255)), ('FC6', (150, 255, 15)), ('T7', (255, 15, 150)), ('T8', (15, 150, 255)),
-        ('P7', (150, 255, 15)), ('P8', (255, 15, 150)),
-        ('O1', (15, 150, 255)), ('O2', (150, 255, 15))
-        )
-
         self.electrodesPosition = \
             [
                 {"x": 82, "y": 57},  # AF3
@@ -35,49 +29,12 @@ class Record:
                 {"x": 113, "y": 375},  # O1
                 {"x": 192, "y": 375}  # O2
             ]
-        # Plot in chunks, adding one new plot curve for every 100 samples
-        self.chunkSize = 100
-        # Remove chunks after we have 10
-        self.maxChunks = 10
-        self.startTime = pg.ptime.time()
         self.headset = Emotiv()
 
-    def update3( self, p, data, ptr, i_curves, startTime, emo_data, color ):
-        now = pg.ptime.time()
-        for c in i_curves:
-            c.setPos(-(now - startTime), 0)
-
-        i = ptr % self.chunkSize
-        if i == 0:
-            curve = p.plot()
-            curve.setPen(color)  # (255, 125, 123))
-            i_curves.append(curve)
-            last = data[-1]
-            data = np.empty((self.chunkSize + 1, 2))
-            data[0] = last
-            while len(i_curves) > self.maxChunks:
-                c = i_curves.pop(0)
-                p.removeItem(c)
-        else:
-            curve = i_curves[-1]
-        data[i + 1, 0] = now - startTime
-        data[i + 1, 1] = emo_data / 4000  # np.random.normal()  # dummy data  #
-        # print emo_data
-        # data[i + 1, 1] = ef.process_decrypted_packet_queue(raw_decrypted_packet, processed_packets)
-        curve.setData(x=data[:i + 2, 0], y=data[:i + 2, 1])
-        ptr += 1
-        return [p, data, ptr, i_curves]
-
-    # update all plots
-    def update( self ):
+    def update(self):
         packet = self.headset.dequeue()
-        # print packet
-        # packet = 1
-        if packet is not None:
-            for i, wave in enumerate(self.allWaves):
-                wave = self.update3(*wave, startTime=self.startTime, emo_data=packet.sensors[ self.electrodes[i][0]]['value'],
-                               color = self.electrodes[i][1])
-                self.allWaves[i] = wave
+        if packet != None:
+            self.plots.updater(packet)
 
     def setRecordTab(self):
         self.setLeftSidedBox()
@@ -129,25 +86,9 @@ class Record:
     def setCenterBox(self):
         # Center sided box for signals
         self.centerBox = QFormLayout()
-        self.plots = pg.GraphicsWindow()
+        self.plots = PlottingWidget()
         self.centerBox.addRow(QLabel("Estado de las senales"))
         self.centerBox.addRow(self.plots)
-
-        self.allWaves = []
-        for i in xrange(14):
-            if i:
-                self.plots.nextRow()
-            p = self.plots.addPlot()
-            # p.setPen((255, 125, 123))
-            if i == 13:
-                p.setLabel('bottom', 'Time', 's')
-            else:
-                p.showAxis('bottom', False)
-            # p.setXRange(-10, 0)
-            curves = []
-            data = np.empty((self.chunkSize + 1, 2))
-            ptr = 0
-            self.allWaves.append([p, data, ptr, curves])
 
     def updateHeadsetStatus(self):
         pixmap = QPixmap("../assets/headset.png")
