@@ -14,7 +14,7 @@ class PlottingWidget(QtGui.QWidget):
         )
 
         layout = QtGui.QHBoxLayout()
-
+        pg.setConfigOptions(antialias=True)
         self.plots = pg.GraphicsWindow()
         self.plotter()
         layout.addWidget(self.plots)

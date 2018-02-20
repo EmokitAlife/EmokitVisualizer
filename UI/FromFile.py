@@ -8,6 +8,7 @@ import csv
 
 from PlottingWidget import PlottingWidget
 from HeadStatusWidget import HeadStatusWidget
+from HeatMapWidget import HeatMapWidget
 
 sys.path.append('../util')
 from PacketParser import PacketParser
@@ -81,12 +82,36 @@ class FromFile:
         self.centerBox = QFormLayout()
         self.centerBox.addRow(QLabel("Estado de las senales"))
 
+        self.activeGraph = True
+
+        self.toggleGraph = QPushButton("Mapa de calor")
+        self.toggleGraph.setEnabled( False )
+        self.toggleGraph.clicked.connect( self.toggleGraphics )
+        self.centerBox.addRow( self.toggleGraph )
+
         self.plots = PlottingWidget()
         self.centerBox.addRow( self.plots )
+
+        self.heatmap = HeatMapWidget()
+        self.centerBox.addRow(self.heatmap)
+        self.toggleGraphics()
+
+    def toggleGraphics(self):
+        if not self.activeGraph:
+            self.plots.setVisible(False)
+            self.heatmap.setVisible(True)
+            self.toggleGraph.setText("Graficas")
+            self.activeGraph = True
+        else:
+            self.plots.setVisible(True)
+            self.heatmap.setVisible(False)
+            self.toggleGraph.setText("Mapa de calor")
+            self.activeGraph = False
 
     def startReading(self):
         self.startBtn.setEnabled(False)
         self.stopBtn.setEnabled(True)
+        self.toggleGraph.setEnabled(True)
 
         self.timer.timeout.connect( self.setupNewPacket )
         self.timer.start(10)
@@ -112,12 +137,14 @@ class FromFile:
         self.headers = None
 
         self.plots.restartPlotting()
+        self.heatmap.updateHeatMapStatus(None)
         self.headsetState.updateHeadsetStatus(None)
 
     def setupNewPacket(self):
         nextPacket = next(self.file)
         parsed = self.parser.fromCSVToPacket( list(self.headers), nextPacket )
         self.plots.updater( parsed )
+        self.heatmap.updateHeatMapStatus(parsed)
         self.headsetState.updateHeadsetStatus(parsed)
 
     def getFilename(self):
