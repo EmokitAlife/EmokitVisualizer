@@ -1,4 +1,5 @@
 from PySide.QtGui import *
+from PySide.QtCore import Qt
 
 class HeatMapWidget(QWidget):
     def __init__(self, parent=None):
@@ -50,9 +51,28 @@ class HeatMapWidget(QWidget):
 
         painter = QPainter()
         painter.begin(pixmap)
+
+        painter.setFont(QFont('Decorative', 15))
+        painter.drawText(pixmap.rect(), Qt.AlignCenter, "Mapa de calor")
+
+        painter.setFont(QFont('Decorative', 8))
+
+        for key in self.electrodesPosition:
+            if key[0] == "O":
+                painter.drawText(self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] - 20, 30, 15,
+                                 Qt.AlignCenter, key)
+            elif key == "T7":
+                painter.drawText(self.electrodesPosition[key]["x"] + 7, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                 Qt.AlignCenter, key)
+            elif key == "T8":
+                painter.drawText(self.electrodesPosition[key]["x"] - 9, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                 Qt.AlignCenter, key)
+            else:
+                painter.drawText( self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] + 32, 30, 15, Qt.AlignCenter, key)
+
         if packet == None:
             color = self.headsetColors[0]
-            painter.setBrush(QColor(color[0], color[1], color[2]))
+            painter.setBrush(QColor(0,0,0))
             for item in self.electrodesPosition:
                 painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
         else:

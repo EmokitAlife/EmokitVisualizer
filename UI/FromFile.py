@@ -126,6 +126,7 @@ class FromFile:
         self.startBtn.setEnabled(False)
         self.stopBtn.setEnabled(False)
         self.restartBtn.setEnabled(False)
+        self.toggleGraph.setEnabled(False)
 
         self.timer.stop()
 
@@ -138,6 +139,8 @@ class FromFile:
 
         self.plots.restartPlotting()
         self.heatmap.updateHeatMapStatus(None)
+        if self.activeGraph:
+            self.toggleGraphics()
         self.headsetState.updateHeadsetStatus(None)
 
     def setupNewPacket(self):

@@ -1,4 +1,5 @@
 from PySide.QtGui import *
+from PySide.QtCore import Qt
 import pyqtgraph as pg
 
 class HeadStatusWidget(QWidget):
@@ -41,6 +42,21 @@ class HeadStatusWidget(QWidget):
 
         painter = QPainter()
         painter.begin(pixmap)
+
+        painter.setFont(QFont('Decorative', 12))
+        for key in self.electrodesPosition:
+            if key[0] == "O":
+                painter.drawText(self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] - 20, 30, 15,
+                                 Qt.AlignCenter, key)
+            elif key == "T7":
+                painter.drawText(self.electrodesPosition[key]["x"] + 7, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                 Qt.AlignCenter, key)
+            elif key == "T8":
+                painter.drawText(self.electrodesPosition[key]["x"] - 9, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                 Qt.AlignCenter, key)
+            else:
+                painter.drawText( self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] + 32, 30, 15, Qt.AlignCenter, key)
+
         if packet == None:
             color = self.headsetColors[0]
             painter.setBrush(QColor(color[0], color[1], color[2]))
