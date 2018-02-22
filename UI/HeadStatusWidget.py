@@ -36,39 +36,37 @@ class HeadStatusWidget(QWidget):
         self.headsetState = QLabel()
         layout.addWidget(self.headsetState)
         self.setLayout(layout)
+        self.pixmap = QPixmap("../assets/headset.png")
 
     def updateHeadsetStatus(self, packet):
-        pixmap = QPixmap("../assets/headset.png")
-
         painter = QPainter()
-        painter.begin(pixmap)
+        if painter.begin(self.pixmap):
+            painter.setFont(QFont('Decorative', 12))
+            for key in self.electrodesPosition:
+                if key[0] == "O":
+                    painter.drawText(self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] - 20, 30, 15,
+                                     Qt.AlignCenter, key)
+                elif key == "T7":
+                    painter.drawText(self.electrodesPosition[key]["x"] + 7, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                     Qt.AlignCenter, key)
+                elif key == "T8":
+                    painter.drawText(self.electrodesPosition[key]["x"] - 9, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                     Qt.AlignCenter, key)
+                else:
+                    painter.drawText( self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] + 32, 30, 15, Qt.AlignCenter, key)
 
-        painter.setFont(QFont('Decorative', 12))
-        for key in self.electrodesPosition:
-            if key[0] == "O":
-                painter.drawText(self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] - 20, 30, 15,
-                                 Qt.AlignCenter, key)
-            elif key == "T7":
-                painter.drawText(self.electrodesPosition[key]["x"] + 7, self.electrodesPosition[key]["y"] + 32, 30, 15,
-                                 Qt.AlignCenter, key)
-            elif key == "T8":
-                painter.drawText(self.electrodesPosition[key]["x"] - 9, self.electrodesPosition[key]["y"] + 32, 30, 15,
-                                 Qt.AlignCenter, key)
+            if packet == None:
+                color = self.headsetColors[0]
+                painter.setBrush(QColor(color[0], color[1], color[2]))
+                for item in self.electrodesPosition:
+                    painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
             else:
-                painter.drawText( self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] + 32, 30, 15, Qt.AlignCenter, key)
+                for sensor in packet.sensors:
+                    if sensor in self.electrodesPosition:
+                        quality = packet.sensors[sensor]['quality'] // 540
+                        color = self.headsetColors[ quality if quality <= 3 else 3 ]
+                        painter.setBrush(QColor(color[0], color[1], color[2]))
+                        painter.drawEllipse( self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"], 28, 28)
+            painter.end()
 
-        if packet == None:
-            color = self.headsetColors[0]
-            painter.setBrush(QColor(color[0], color[1], color[2]))
-            for item in self.electrodesPosition:
-                painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
-        else:
-            for sensor in packet.sensors:
-                if sensor in self.electrodesPosition:
-                    quality = packet.sensors[sensor]['quality'] // 540
-                    color = self.headsetColors[ quality if quality <= 3 else 3 ]
-                    painter.setBrush(QColor(color[0], color[1], color[2]))
-                    painter.drawEllipse( self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"], 28, 28)
-        painter.end()
-
-        self.headsetState.setPixmap(pixmap)
+        self.headsetState.setPixmap(self.pixmap)

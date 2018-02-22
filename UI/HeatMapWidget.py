@@ -46,42 +46,42 @@ class HeatMapWidget(QWidget):
         self.minValue = -607
         self.maxValue = 3075
 
+        self.pixmap = QPixmap("../assets/headset.png")
+
     def updateHeatMapStatus(self, packet):
-        pixmap = QPixmap("../assets/headset.png")
-
         painter = QPainter()
-        painter.begin(pixmap)
+        if painter.begin(self.pixmap):
 
-        painter.setFont(QFont('Decorative', 15))
-        painter.drawText(pixmap.rect(), Qt.AlignCenter, "Mapa de calor")
+            painter.setFont(QFont('Decorative', 15))
+            painter.drawText(self.pixmap.rect(), Qt.AlignCenter, "Mapa de calor")
 
-        painter.setFont(QFont('Decorative', 8))
+            painter.setFont(QFont('Decorative', 8))
 
-        for key in self.electrodesPosition:
-            if key[0] == "O":
-                painter.drawText(self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] - 20, 30, 15,
-                                 Qt.AlignCenter, key)
-            elif key == "T7":
-                painter.drawText(self.electrodesPosition[key]["x"] + 7, self.electrodesPosition[key]["y"] + 32, 30, 15,
-                                 Qt.AlignCenter, key)
-            elif key == "T8":
-                painter.drawText(self.electrodesPosition[key]["x"] - 9, self.electrodesPosition[key]["y"] + 32, 30, 15,
-                                 Qt.AlignCenter, key)
+            for key in self.electrodesPosition:
+                if key[0] == "O":
+                    painter.drawText(self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] - 20, 30, 15,
+                                     Qt.AlignCenter, key)
+                elif key == "T7":
+                    painter.drawText(self.electrodesPosition[key]["x"] + 7, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                     Qt.AlignCenter, key)
+                elif key == "T8":
+                    painter.drawText(self.electrodesPosition[key]["x"] - 9, self.electrodesPosition[key]["y"] + 32, 30, 15,
+                                     Qt.AlignCenter, key)
+                else:
+                    painter.drawText( self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] + 32, 30, 15, Qt.AlignCenter, key)
+
+            if packet == None:
+                color = self.headsetColors[0]
+                painter.setBrush(QColor(0,0,0))
+                for item in self.electrodesPosition:
+                    painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
             else:
-                painter.drawText( self.electrodesPosition[key]["x"] - 1, self.electrodesPosition[key]["y"] + 32, 30, 15, Qt.AlignCenter, key)
+                for sensor in packet.sensors:
+                    if sensor in self.electrodesPosition:
+                        quality = ( packet.sensors[sensor]['value'] + -1*self.minValue ) // 307
+                        color = self.headsetColors[ quality ]
+                        painter.setBrush(QColor(color[0], color[1], color[2]))
+                        painter.drawEllipse( self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"], 28, 28)
+            painter.end()
 
-        if packet == None:
-            color = self.headsetColors[0]
-            painter.setBrush(QColor(0,0,0))
-            for item in self.electrodesPosition:
-                painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
-        else:
-            for sensor in packet.sensors:
-                if sensor in self.electrodesPosition:
-                    quality = ( packet.sensors[sensor]['value'] + -1*self.minValue ) // 307
-                    color = self.headsetColors[ quality ]
-                    painter.setBrush(QColor(color[0], color[1], color[2]))
-                    painter.drawEllipse( self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"], 28, 28)
-        painter.end()
-
-        self.headsetState.setPixmap(pixmap)
+        self.headsetState.setPixmap(self.pixmap)
