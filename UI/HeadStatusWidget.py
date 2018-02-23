@@ -1,11 +1,10 @@
 from PySide.QtGui import *
 from PySide.QtCore import Qt
-import pyqtgraph as pg
 
 class HeadStatusWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, callback, parent=None):
         super(HeadStatusWidget, self).__init__(parent)
-
+        self.callback= callback
         self.electrodesPosition = \
             {
                 "AF3": {"x": 82, "y": 57},
@@ -60,6 +59,7 @@ class HeadStatusWidget(QWidget):
                 painter.setBrush(QColor(color[0], color[1], color[2]))
                 for item in self.electrodesPosition:
                     painter.drawEllipse(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"], 28, 28)
+                    painter.drawPoint(self.electrodesPosition[item]["x"], self.electrodesPosition[item]["y"])
             else:
                 for sensor in packet.sensors:
                     if sensor in self.electrodesPosition:
@@ -67,6 +67,18 @@ class HeadStatusWidget(QWidget):
                         color = self.headsetColors[ quality if quality <= 3 else 3 ]
                         painter.setBrush(QColor(color[0], color[1], color[2]))
                         painter.drawEllipse( self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"], 28, 28)
+                        painter.drawPoint(self.electrodesPosition[sensor]["x"], self.electrodesPosition[sensor]["y"])
             painter.end()
 
         self.headsetState.setPixmap(self.pixmap)
+
+    def callParentCallback(self, sensor):
+        self.callback(sensor)
+
+    def mousePressEvent(self, QMouseEvent):
+        x, y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
+        for sensor in self.electrodesPosition:
+            #print self.electrodesPosition[sensor]
+            if ( x >= self.electrodesPosition[sensor]["x"] and x <= self.electrodesPosition[sensor]["x"] + 35 ) and \
+               ( y >= self.electrodesPosition[sensor]["y"] and y <= self.electrodesPosition[sensor]["y"] + 35 ):
+                self.callParentCallback( sensor )

@@ -73,9 +73,17 @@ class FromFile:
         # Sensors status
         self.leftBox.addRow(QLabel("Estado de los sensores"))
 
-        self.headsetState = HeadStatusWidget()
+        self.headsetState = HeadStatusWidget(self.setPlotGraphBySensor)
         self.leftBox.addRow(self.headsetState)
         self.headsetState.updateHeadsetStatus(None)
+
+    def setPlotGraphBySensor(self, sensor):
+        self.plots.setVisible(False)
+        self.altPlots.setVisible(True)
+        self.altPlots.restartSensors( ["AF3", "AF4"] )
+        self.toggleGraph.setVisible(False)
+        self.returnToGraphs.setVisible(True)
+
 
     def setCenterBox(self):
         # Center sided box for signals
@@ -89,12 +97,21 @@ class FromFile:
         self.toggleGraph.clicked.connect( self.toggleGraphics )
         self.centerBox.addRow( self.toggleGraph )
 
+        self.returnToGraphs = QPushButton("Regresar")
+        self.returnToGraphs.setVisible(False)
+        self.returnToGraphs.clicked.connect(self.returnToGraphics)
+        self.centerBox.addRow(self.returnToGraphs)
+
         self.plots = PlottingWidget()
         self.centerBox.addRow( self.plots )
 
         self.heatmap = HeatMapWidget()
         self.centerBox.addRow(self.heatmap)
         self.toggleGraphics()
+
+        self.altPlots = PlottingWidget([])
+        self.centerBox.addRow(self.altPlots)
+        self.altPlots.setVisible(False)
 
     def toggleGraphics(self):
         if not self.activeGraph:
@@ -107,6 +124,12 @@ class FromFile:
             self.heatmap.setVisible(False)
             self.toggleGraph.setText("Mapa de calor")
             self.activeGraph = False
+
+    def returnToGraphics(self):
+        self.altPlots.setVisible(False)
+        self.returnToGraphs.setVisible(False)
+        self.plots.setVisible(True)
+        self.toggleGraph.setVisible(True)
 
     def startReading(self):
         self.startBtn.setEnabled(False)
@@ -149,6 +172,8 @@ class FromFile:
         self.plots.updater( parsed )
         self.heatmap.updateHeatMapStatus(parsed)
         self.headsetState.updateHeadsetStatus(parsed)
+        if self.altPlots != None:
+            self.altPlots.updater(parsed)
 
     def getFilename(self):
         filename = QFileDialog.getOpenFileName(self.examine, 'Open file',

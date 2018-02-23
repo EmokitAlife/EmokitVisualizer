@@ -29,6 +29,9 @@ class Record:
             ]
         self.headset = Emotiv()
 
+    def setPlotGraphBySensor(self, sensor):
+        print sensor
+
     def update(self):
         packet = self.headset.dequeue()
         if packet != None:
@@ -79,7 +82,7 @@ class Record:
 
         # Sensors status
         self.leftBox.addRow(QLabel("Estado de los sensores"))
-        self.headsetState = HeadStatusWidget()
+        self.headsetState = HeadStatusWidget(self.setPlotGraphBySensor)
         self.leftBox.addRow(self.headsetState)
         self.headsetState.updateHeadsetStatus(None)
 

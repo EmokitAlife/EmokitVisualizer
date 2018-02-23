@@ -45,7 +45,7 @@ class HeatMapWidget(QWidget):
         self.setLayout(layout)
         self.minValue = -607
         self.maxValue = 3075
-        layout.setAlignment(Qt.AlignHCenter)
+        layout.setAlignment(Qt.AlignHCenter )
 
         self.pixmap = QPixmap("../assets/headset.png")
 
