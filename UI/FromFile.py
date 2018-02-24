@@ -79,11 +79,11 @@ class FromFile:
 
     def setPlotGraphBySensor(self, sensor):
         self.plots.setVisible(False)
+        self.heatmap.setVisible(False)
         self.altPlots.setVisible(True)
         self.altPlots.restartSensors( ["AF3", "AF4"] )
         self.toggleGraph.setVisible(False)
         self.returnToGraphs.setVisible(True)
-
 
     def setCenterBox(self):
         # Center sided box for signals
@@ -146,6 +146,9 @@ class FromFile:
         self.startBtn.setEnabled(True)
 
     def restartReading(self):
+        self.altPlots.setVisible(False)
+        self.returnToGraphs.setVisible(False)
+
         self.startBtn.setEnabled(False)
         self.stopBtn.setEnabled(False)
         self.restartBtn.setEnabled(False)
@@ -161,6 +164,8 @@ class FromFile:
         self.headers = None
 
         self.plots.restartPlotting()
+        self.plots.setVisible(True)
+        self.activeGraph = True
         self.heatmap.updateHeatMapStatus(None)
         if self.activeGraph:
             self.toggleGraphics()

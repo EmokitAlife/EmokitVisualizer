@@ -23,11 +23,9 @@ class PlottingWidget(QtGui.QWidget):
         self.plotter()
 
     def restartSensors(self, sensors):
-        self.restartPlotting()
         self.sensors = sensors
         self.startTime = pg.ptime.time()
-        self.plotter()
-
+        self.restartPlotting()
 
     def plotter(self):
         self.allwaves = []
