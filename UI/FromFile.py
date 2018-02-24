@@ -39,9 +39,6 @@ class FromFile:
         self.setLeftSidedBox()
         self.setCenterBox()
 
-        # Bottom sided box
-        textEdit2 = QTextEdit("Bottom rectangle")
-
         # Main grid layout
         self.gridLayout = QGridLayout()
         self.gridLayout.addLayout( self.leftBox, 0, 0)
@@ -69,7 +66,6 @@ class FromFile:
         self.leftBox.addRow(folderButtons)
 
         # Action selection buttons
-
         self.startBtn = QPushButton("Iniciar")
         self.startBtn.setEnabled(False)
         self.startBtn.clicked.connect(self.startReading)

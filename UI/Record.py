@@ -10,27 +10,34 @@ from HeadStatusWidget import HeadStatusWidget
 
 class Record:
     def __init__(self, parent=None):
-        self.electrodesPosition = \
-            [
-                {"x": 82, "y": 57},  # AF3
-                {"x": 221, "y": 57},  # AF4
-                {"x": 35, "y": 104},  # F7
-                {"x": 114, "y": 107},  # F3
-                {"x": 190, "y": 107},  # F4
-                {"x": 269, "y": 104},  # F8
-                {"x": 67, "y": 149},  # FC5
-                {"x": 236, "y": 149},  # FC6
-                {"x": 18, "y": 197},  # T7
-                {"x": 286, "y": 197},  # T8
-                {"x": 67, "y": 317},  # P7
-                {"x": 236, "y": 317},  # P8
-                {"x": 113, "y": 375},  # O1
-                {"x": 192, "y": 375}  # O2
-            ]
         self.headset = Emotiv()
+        self.electrodePairing = { \
+            "AF3": {'pair': "AF4", 'order': 1},
+            "AF4": {'pair': "AF3", 'order': 0},
+            "F3": {'pair': "F4", 'order': 1},
+            "F4": {'pair': "F3", 'order': 0},
+            "F7": {'pair': "F8", 'order': 1},
+            "F8": {'pair': "F7", 'order': 0},
+            "FC5": {'pair': "FC6", 'order': 1},
+            "FC6": {'pair': "FC5", 'order': 0},
+            "T7": {'pair': "T8", 'order': 1},
+            "T8": {'pair': "T7", 'order': 0},
+            "P7": {'pair': "P8", 'order': 1},
+            "P8": {'pair': "P7", 'order': 0},
+            "O1": {'pair': "O2", 'order': 1},
+            "O2": {'pair': "O1", 'order': 0},
+        }
 
     def setPlotGraphBySensor(self, sensor):
-        print sensor
+        self.plots.setVisible(False)
+        self.altPlots.setVisible(True)
+
+        if self.electrodePairing[sensor]["order"]:
+            self.altPlots.restartSensors( [ sensor, self.electrodePairing[sensor]["pair"]] )
+        else:
+            self.altPlots.restartSensors([ self.electrodePairing[sensor]["pair"], sensor ])
+
+        self.returnToGraphs.setVisible(True)
 
     def update(self):
         packet = self.headset.dequeue()
@@ -43,20 +50,14 @@ class Record:
         self.setLeftSidedBox()
         self.setCenterBox()
 
-        # Bottom sided box
-        textEdit2 = QTextEdit("Bottom rectangle")
-
         # Main grid layout
         self.gridLayout = QGridLayout()
         self.gridLayout.addLayout( self.leftBox, 0, 0)
         self.gridLayout.addLayout( self.centerBox, 0, 1)
-        self.gridLayout.addWidget(textEdit2, 1, 1)
 
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 3)
 
-        self.gridLayout.setRowStretch(0, 3)
-        self.gridLayout.setRowStretch(1, 1)
         return self.gridLayout
 
     def setLeftSidedBox(self):
@@ -64,7 +65,10 @@ class Record:
         self.leftBox = QFormLayout()
 
         self.recordButton = QPushButton("Grabar")
+        self.recordButton.setEnabled(False)
+
         self.stopButton = QPushButton("Detener")
+        self.stopButton.setEnabled(False)
         self.recordButtons = QGridLayout()
         self.recordButtons.addWidget( self.recordButton, 0, 0)
         self.recordButtons.addWidget( self.stopButton, 0, 1)
@@ -74,6 +78,7 @@ class Record:
         self.route = QLineEdit()
         self.route.setReadOnly(True)
         self.examine = QPushButton("Examinar")
+        self.examine.clicked.connect(self.getFilename)
         folderButtons = QGridLayout()
         folderButtons.addWidget(self.route, 0, 0)
         folderButtons.addWidget(self.examine, 0, 1)
@@ -89,6 +94,33 @@ class Record:
     def setCenterBox(self):
         # Center sided box for signals
         self.centerBox = QFormLayout()
-        self.plots = PlottingWidget()
+
         self.centerBox.addRow(QLabel("Estado de las senales"))
+
+        self.returnToGraphs = QPushButton("Regresar")
+        self.returnToGraphs.setVisible(False)
+        self.returnToGraphs.clicked.connect(self.returnToGraphics)
+        self.centerBox.addRow(self.returnToGraphs)
+
+        self.plots = PlottingWidget()
         self.centerBox.addRow(self.plots)
+
+        self.altPlots = PlottingWidget([])
+        self.centerBox.addRow(self.altPlots)
+        self.altPlots.setVisible(False)
+
+    def returnToGraphics(self):
+        self.altPlots.setVisible(False)
+        self.returnToGraphs.setVisible(False)
+        self.plots.setVisible(True)
+
+    def getFilename(self):
+        filename = QFileDialog.getExistingDirectory(self.examine, "Open Directory",
+                                         "/home",
+                                         QFileDialog.ShowDirsOnly
+                                         | QFileDialog.DontResolveSymlinks);
+        self.fileRoute = filename
+        self.route.setText(self.fileRoute)
+
+        self.recordButton.setEnabled(True)
+        self.stopButton.setEnabled(True)
