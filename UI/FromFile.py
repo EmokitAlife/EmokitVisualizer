@@ -18,6 +18,23 @@ class FromFile:
         self.parser = PacketParser()
         self.timer = pg.QtCore.QTimer()
 
+        self.electrodePairing = {\
+            "AF3": {'pair': "AF4", 'order': 1},
+            "AF4": {'pair': "AF3", 'order': 0},
+            "F3":  {'pair': "F4", 'order': 1},
+            "F4":  {'pair': "F3", 'order': 0},
+            "F7":  {'pair': "F8", 'order': 1},
+            "F8":  {'pair': "F7", 'order': 0},
+            "FC5": {'pair': "FC6", 'order': 1},
+            "FC6": {'pair': "FC5", 'order': 0},
+            "T7":  {'pair': "T8", 'order': 1},
+            "T8":  {'pair': "T7", 'order': 0},
+            "P7":  {'pair': "P8", 'order': 1},
+            "P8":  {'pair': "P7", 'order': 0},
+            "O1":  {'pair': "O2", 'order': 1},
+            "O2":  {'pair': "O1", 'order': 0},
+        }
+
     def setFromFileTab(self):
         self.setLeftSidedBox()
         self.setCenterBox()
@@ -81,7 +98,12 @@ class FromFile:
         self.plots.setVisible(False)
         self.heatmap.setVisible(False)
         self.altPlots.setVisible(True)
-        self.altPlots.restartSensors( ["AF3", "AF4"] )
+
+        if self.electrodePairing[sensor]["order"]:
+            self.altPlots.restartSensors( [ sensor, self.electrodePairing[sensor]["pair"]] )
+        else:
+            self.altPlots.restartSensors([ self.electrodePairing[sensor]["pair"], sensor ])
+
         self.toggleGraph.setVisible(False)
         self.returnToGraphs.setVisible(True)
 
