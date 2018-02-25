@@ -4,7 +4,6 @@
 import sys
 import pyqtgraph as pg
 from PySide.QtGui import *
-
 from Record import Record
 from FromFile import FromFile
 

@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from PySide.QtGui import *
-
 from emokit.emotiv import Emotiv
-
 from PlottingWidget import PlottingWidget
 from HeadStatusWidget import HeadStatusWidget
 

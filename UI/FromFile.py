@@ -5,11 +5,9 @@ import sys
 import pyqtgraph as pg
 from PySide.QtGui import *
 import csv
-
 from PlottingWidget import PlottingWidget
 from HeadStatusWidget import HeadStatusWidget
 from HeatMapWidget import HeatMapWidget
-
 sys.path.append('../util')
 from PacketParser import PacketParser
 
