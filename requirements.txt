@@ -4,3 +4,6 @@ pytest
 pygame
 pywinusb>=0.4.2
 wxPython
+emokit
+pyside
+pyqtgraph
