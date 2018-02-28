@@ -88,7 +88,6 @@ And that's it for Linux.
 ## Authors
 
 * **Dorian Tovar** - *developer* - [datovard](https://github.com/datovard)
-* **Jonathan Granados** - *developer* - [joagranadosme](https://github.com/joagranadosme)
 
 See also the list of [contributors](https://github.com/orgs/EmokitAlife/people) who participated in this project.
 
