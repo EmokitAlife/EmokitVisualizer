@@ -4,8 +4,8 @@ This is an Open Source signal visualizer project for the Emotiv EPOC+ Dongle bas
 
 ## Screenshots
 
-![alt text](https://raw.githubusercontent.com/EmokitAlife/EmokitVisualizer/master/screenshot-1.png "Main Interface")
-![alt text](https://raw.githubusercontent.com/EmokitAlife/EmokitVisualizer/master/screenshot-2.png "Main Interface")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-1.png "Main Interface")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-2.png "Main Interface")
 
 
 ## Getting Started
