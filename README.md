@@ -4,8 +4,11 @@ This is an Open Source signal visualizer project for the Emotiv EPOC+ Dongle bas
 
 ## Screenshots
 
-![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-1.png "Main Interface")
-![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-2.png "Main Interface")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-1.png "Main Interface tab 1")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-2.png "Main Interface tab 2")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-3.png "Running a recorded file plots")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-4.png "Running a recorded file heatmap")
+![alt text](https://github.com/EmokitAlife/EmokitVisualizer/blob/CreacionUI/assets/screenshot-5.png "Running a recorded file selected sensors")
 
 
 ## Getting Started
