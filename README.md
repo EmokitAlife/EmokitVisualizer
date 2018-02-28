@@ -2,6 +2,12 @@
 
 This is an Open Source signal visualizer project for the Emotiv EPOC+ Dongle based on the open source project [Emokit](https://github.com/openyou/emokit)
 
+## Screenshots
+
+![alt text](https://raw.githubusercontent.com/EmokitAlife/EmokitVisualizer/master/screenshot-1.png "Main Interface")
+![alt text](https://raw.githubusercontent.com/EmokitAlife/EmokitVisualizer/master/screenshot-2.png "Main Interface")
+
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
