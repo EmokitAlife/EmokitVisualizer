@@ -1,10 +1,17 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
 from PySide.QtGui import *
 from emokit.emotiv import Emotiv
 from PlottingWidget import PlottingWidget
 from HeadStatusWidget import HeadStatusWidget
+import pyqtgraph as pg
+import datetime
+import time
+
+sys.path.append('../util')
+from PacketParser import PacketParser
 
 class Record:
     def __init__(self, parent=None):
@@ -25,6 +32,10 @@ class Record:
             "O1": {'pair': "O2", 'order': 1},
             "O2": {'pair': "O1", 'order': 0},
         }
+        self.timer = pg.QtCore.QTimer()
+        self.recording = False
+        self.parser = PacketParser()
+        self.header_text = "Timestamp,F3 Value,F3 Quality,FC5 Value,FC5 Quality,F7 Value,F7 Quality,T7 Value,T7 Quality,P7 Value,P7 Quality,O1 Value,O1 Quality,O2 Value,O2 Quality,P8 Value,P8 Quality,T8 Value,T8 Quality,F8 Value,F8 Quality,AF4 Value,AF4 Quality,FC6 Value,FC6 Quality,F4 Value,F4 Quality,AF3 Value,AF3 Quality,X Value,Y Value,Z Value"
 
     def setPlotGraphBySensor(self, sensor):
         self.plots.setVisible(False)
@@ -43,6 +54,9 @@ class Record:
             self.plots.updater(packet)
         self.headsetState.updateHeadsetStatus(packet)
 
+        if self.recording:
+            row = self.parser.fromPacketToCSV( packet )
+            self.output_file.write(row + "\n")
 
     def setRecordTab(self):
         self.setLeftSidedBox()
@@ -64,9 +78,12 @@ class Record:
 
         self.recordButton = QPushButton("Grabar")
         self.recordButton.setEnabled(False)
+        self.recordButton.clicked.connect(self.startRecord)
 
         self.stopButton = QPushButton("Detener")
         self.stopButton.setEnabled(False)
+        self.stopButton.clicked.connect(self.stopRecord)
+
         self.recordButtons = QGridLayout()
         self.recordButtons.addWidget( self.recordButton, 0, 0)
         self.recordButtons.addWidget( self.stopButton, 0, 1)
@@ -121,4 +138,15 @@ class Record:
         self.route.setText(self.fileRoute)
 
         self.recordButton.setEnabled(True)
+
+    def startRecord(self):
         self.stopButton.setEnabled(True)
+        self.recordButton.setEnabled(False)
+
+        self.recording = True
+        self.file_name += datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S') + ".csv"
+        self.output_file = open(self.file_name, 'w')
+        self.output_file.write(self.header_text + "\n")
+
+    def stopRecord(self):
+        self.output_file.close()
